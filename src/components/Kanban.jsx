@@ -12,12 +12,6 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 import { FiPlus, FiTrash } from "react-icons/fi";
-import { polyfill } from "mobile-drag-drop";
-import { scrollBehaviourDragImageTranslateOverride } from "mobile-drag-drop/scroll-behaviour";
-
-polyfill({
-  dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride,
-});
 
 const DEFAULT_CARDS = [
   { id: nanoid(), listName: "toBuy", content: "Buy milk" },
@@ -37,7 +31,6 @@ const Kanban = () => {
       : currentList === "inCart"
       ? "In Cart"
       : "Stocked";
-  console.log(cards);
 
   let leftList;
   let rightList;
@@ -129,10 +122,14 @@ const List = ({ cards, title, setCards, listName, className }) => {
   const [active, setActive] = useState(false);
 
   const handleDragStart = (e, card) => {
+    console.log("dragstart");
+
     e.dataTransfer.setData("cardId", card.id);
   };
 
   const handleDragOver = (e) => {
+    console.log("dragover");
+
     e.preventDefault();
     highlightIndicator(e);
 
@@ -140,6 +137,8 @@ const List = ({ cards, title, setCards, listName, className }) => {
   };
 
   const handleDrop = (e) => {
+    console.log("drop");
+
     const cardId = e.dataTransfer.getData("cardId");
 
     setActive(false);
@@ -179,11 +178,14 @@ const List = ({ cards, title, setCards, listName, className }) => {
   };
 
   const handleDragLeave = () => {
+    console.log("dragleave");
     clearHighlights();
     setActive(false);
   };
 
   const clearHighlights = (els) => {
+    console.log("clearHighlights");
+
     const indicators = els || getIndicators();
 
     indicators.forEach((i) => {
@@ -192,6 +194,8 @@ const List = ({ cards, title, setCards, listName, className }) => {
   };
 
   const highlightIndicator = (e) => {
+    console.log("highlightIndicator");
+
     const indicators = getIndicators();
 
     clearHighlights(indicators);
@@ -201,10 +205,13 @@ const List = ({ cards, title, setCards, listName, className }) => {
     el.element.style.opacity = "1";
   };
   const getIndicators = () => {
+    console.log("getIndicators");
+
     return Array.from(document.querySelectorAll(`[data-list="${listName}"]`));
   };
 
   const getNearestIndicator = (e, indicators) => {
+    console.log("getNearestIndicator");
     const DISTANCE_OFFSET = 50;
 
     const el = indicators.reduce(

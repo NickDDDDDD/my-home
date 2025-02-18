@@ -12,6 +12,7 @@
   "dependencies": {
     "@tailwindcss/postcss": "^4.0.6",
     "@tailwindcss/vite": "^4.0.6",
+    "mobile-drag-drop": "^3.0.0-rc.0",
     "motion": "^12.4.3",
     "nanoid": "^5.1.0",
     "react": "^19.0.0",

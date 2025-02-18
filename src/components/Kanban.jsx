@@ -12,6 +12,9 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 import { FiPlus, FiTrash } from "react-icons/fi";
+import { polyfill } from "mobile-drag-drop";
+
+polyfill();
 
 const DEFAULT_CARDS = [
   { id: nanoid(), listName: "toBuy", content: "Buy milk" },

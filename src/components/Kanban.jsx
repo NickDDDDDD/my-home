@@ -1,29 +1,125 @@
 import PropTypes from "prop-types";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { twMerge } from "tailwind-merge";
+import { nanoid } from "nanoid";
+import {
+  FaFire,
+  FaShoppingCart,
+  FaCartArrowDown,
+  FaClipboardCheck,
+  FaBoxOpen,
+  FaCheckCircle,
+} from "react-icons/fa";
+import { FiPlus, FiTrash } from "react-icons/fi";
+
+const DEFAULT_CARDS = [
+  { id: nanoid(), listName: "toBuy", content: "Buy milk" },
+  { id: nanoid(), listName: "inCart", content: "Buy eggs" },
+  { id: nanoid(), listName: "stocked", content: "Buy bread" },
+  { id: nanoid(), listName: "toBuy", content: "Buy cheese" },
+  { id: nanoid(), listName: "inCart", content: "Buy butter" },
+  { id: nanoid(), listName: "stocked", content: "Buy jam" },
+];
 
 const Kanban = () => {
-  const defaultCards = [
-    { id: "0", listName: "a" },
-    { id: "1", listName: "b" },
-    { id: "2", listName: "c" },
-    { id: "3", listName: "a" },
-    { id: "4", listName: "b" },
-    { id: "5", listName: "c" },
-  ];
-  const [cards, setCards] = useState(defaultCards);
+  const [cards, setCards] = useState(DEFAULT_CARDS);
+  const [currentList, setCurrentList] = useState("toBuy");
+  const currentTitle =
+    currentList === "toBuy"
+      ? "To Buy"
+      : currentList === "inCart"
+      ? "In Cart"
+      : "Stocked";
   console.log(cards);
 
+  let leftList;
+  let rightList;
+
+  switch (currentList) {
+    case "toBuy":
+      leftList = "burnBarrel";
+      rightList = "inCart";
+      break;
+    case "inCart":
+      leftList = "toBuy";
+      rightList = "stocked";
+      break;
+    case "stocked":
+      leftList = "burnBarrel";
+      rightList = "inCart";
+      break;
+    default:
+      leftList = "burnBarrel";
+      rightList = "inCart";
+      break;
+  }
+
   return (
-    <div className="h-screen w-full flex">
-      <List cards={cards} setCards={setCards} title="a" listName="a" />
-      <List cards={cards} setCards={setCards} title="b" listName="b" />
-      <List cards={cards} setCards={setCards} title="c" listName="c" />
+    <div className="h-dvh w-full grid grid-cols-12">
+      <MoveCard
+        cards={cards}
+        setCards={setCards}
+        listName={leftList}
+        className="col-span-1"
+      />
+      <div className="col-span-10 grid grid-rows-12">
+        <div className="row-span-11 p-5 ">
+          <div className="relative w-full h-full">
+            <List
+              cards={cards}
+              setCards={setCards}
+              title={currentTitle}
+              listName={currentList}
+            />
+            <AddCard
+              listName={currentList}
+              setCards={setCards}
+              className="absolute bottom-0 right-0"
+            />
+          </div>
+        </div>
+        <div className="row-span-1 grid grid-cols-3">
+          <button
+            onClick={() => setCurrentList("toBuy")}
+            className={twMerge(
+              "border-t border-r border-black px-4 py-2",
+              currentList === "toBuy" && "bg-gray-300 font-bold"
+            )}
+          >
+            To Buy
+          </button>
+          <button
+            onClick={() => setCurrentList("inCart")}
+            className={twMerge(
+              "border-t border-r border-black px-4 py-2",
+              currentList === "inCart" && "bg-gray-300 font-bold"
+            )}
+          >
+            In Cart
+          </button>
+          <button
+            onClick={() => setCurrentList("stocked")}
+            className={twMerge(
+              "border-t border-black px-4 py-2",
+              currentList === "stocked" && "bg-gray-300 font-bold"
+            )}
+          >
+            Stocked
+          </button>
+        </div>
+      </div>
+      <MoveCard
+        cards={cards}
+        setCards={setCards}
+        listName={rightList}
+        className="col-span-1"
+      />
     </div>
   );
 };
 
-const List = ({ cards, title, setCards, listName }) => {
+const List = ({ cards, title, setCards, listName, className }) => {
   const [active, setActive] = useState(false);
 
   const handleDragStart = (e, card) => {
@@ -128,14 +224,16 @@ const List = ({ cards, title, setCards, listName }) => {
 
   return (
     <div
-      className={`w-40 h-full border border-black flex flex-col items-center gap-1 p-1 ${
+      className={twMerge(
+        className,
+        "w-full h-full flex flex-col items-center gap-1 p-1 overflow-y-auto",
         active ? "bg-neutral-800/50" : "bg-neutral-800/0"
-      }`}
+      )}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       onDragLeave={handleDragLeave}
     >
-      <h2>{title}</h2>
+      <h1>{title}</h1>
       {cards
         .filter((card) => card.listName === listName)
         .map((card) => (
@@ -152,6 +250,7 @@ List.propTypes = {
 
   title: PropTypes.string.isRequired,
   listName: PropTypes.string.isRequired,
+  className: PropTypes.string,
 };
 
 const DropIndicator = ({ beforeId, listName }) => {
@@ -178,9 +277,9 @@ const Card = ({ card, handleDragStart }) => {
         onDragStart={(e) => handleDragStart(e, card)}
         layout
         layoutId={card.id}
-        className="w-full h-10 border border-black bg-red-400 cursor-grab active:cursor-grabbing items-center flex justify-center"
+        className="w-full h-10 border border-black bg-stone-200 cursor-grab active:cursor-grabbing items-center flex justify-center"
       >
-        {card.id}
+        {card.content}
       </motion.div>
     </>
   );
@@ -189,6 +288,174 @@ const Card = ({ card, handleDragStart }) => {
 Card.propTypes = {
   card: PropTypes.object.isRequired,
   handleDragStart: PropTypes.func.isRequired,
+};
+
+const AddCard = ({ listName, setCards, className }) => {
+  const [text, setText] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!text.trim().length) return;
+
+    const newCard = {
+      listName,
+      content: text.trim(),
+      id: nanoid(),
+    };
+
+    setCards((pv) => [...pv, newCard]);
+
+    setAdding(false);
+  };
+
+  return (
+    <>
+      {adding ? (
+        <motion.form
+          layout
+          onSubmit={handleSubmit}
+          className={twMerge(className, "w-full")}
+        >
+          <textarea
+            onChange={(e) => setText(e.target.value)}
+            autoFocus
+            placeholder="Add new item..."
+            className="w-full h-[20vh] rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-800 placeholder-violet-300 focus:outline-0 resize-none"
+          />
+          <div className="mt-1.5 flex items-center justify-end gap-1.5">
+            <button
+              onClick={() => setAdding(false)}
+              className="px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-600"
+            >
+              Close
+            </button>
+            <button
+              type="submit"
+              className="flex items-center gap-1.5 rounded bg-neutral-50 px-3 py-1.5 text-xs text-neutral-950 transition-colors hover:bg-neutral-300"
+            >
+              <span>Add</span>
+              <FiPlus />
+            </button>
+          </div>
+        </motion.form>
+      ) : (
+        <motion.button
+          layout
+          onClick={() => setAdding(true)}
+          className={twMerge(
+            className,
+            "bg-purple-400 grid place-items-center p-5 transition-color rounded-full"
+          )}
+        >
+          <FiPlus />
+        </motion.button>
+      )}
+    </>
+  );
+};
+
+AddCard.propTypes = {
+  listName: PropTypes.string.isRequired,
+  setCards: PropTypes.func.isRequired,
+  className: PropTypes.string,
+};
+
+const MoveCard = ({ cards, setCards, listName, className }) => {
+  const [active, setActive] = useState(false);
+
+  const styles = {
+    toBuy: {
+      activeIcon: FaCheckCircle,
+      inactiveIcon: FaShoppingCart,
+      activeStyle: "border-blue-800 bg-blue-800/20 text-blue-500",
+      inactiveStyle: "border-neutral-500 bg-neutral-500/20 text-neutral-500",
+    },
+    inCart: {
+      activeIcon: FaClipboardCheck,
+      inactiveIcon: FaCartArrowDown,
+      activeStyle: "border-green-800 bg-green-800/20 text-green-500",
+      inactiveStyle: "border-neutral-500 bg-neutral-500/20 text-neutral-500",
+    },
+    stocked: {
+      activeIcon: FaCheckCircle,
+      inactiveIcon: FaBoxOpen,
+      activeStyle: "border-yellow-800 bg-yellow-800/20 text-yellow-500",
+      inactiveStyle: "border-neutral-500 bg-neutral-500/20 text-neutral-500",
+    },
+    burnBarrel: {
+      activeIcon: FaFire,
+      inactiveIcon: FiTrash,
+      activeStyle: "border-red-800 bg-red-800/20 text-red-500",
+      inactiveStyle: "border-neutral-500 bg-neutral-500/20 text-neutral-500",
+    },
+  };
+
+  const {
+    activeIcon: ActiveIcon,
+    inactiveIcon: InactiveIcon,
+    activeStyle,
+    inactiveStyle,
+  } = styles[listName] || {};
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setActive(true);
+  };
+
+  const handleDragLeave = () => {
+    setActive(false);
+  };
+
+  const handleDrop = (e) => {
+    const cardId = e.dataTransfer.getData("cardId");
+
+    if (listName === "burnBarrel") {
+      setCards((pv) => pv.filter((c) => c.id !== cardId));
+      setActive(false);
+      return;
+    }
+
+    let copy = [...cards];
+    let cardToTransfer = copy.find((card) => {
+      console.log(card.id, cardId);
+      return card.id === cardId;
+    });
+
+    if (!cardToTransfer) return;
+
+    cardToTransfer = { ...cardToTransfer, listName };
+
+    copy = copy.filter((card) => card.id !== cardId);
+    copy.push(cardToTransfer);
+
+    setCards(copy);
+
+    setActive(false);
+  };
+
+  return (
+    <div
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      className={twMerge(
+        className,
+        "h-full w-full grid place-content-center border text-3xl",
+        active ? activeStyle : inactiveStyle
+      )}
+    >
+      {active ? <ActiveIcon className="animate-bounce" /> : <InactiveIcon />}
+    </div>
+  );
+};
+
+MoveCard.propTypes = {
+  cards: PropTypes.array.isRequired,
+  setCards: PropTypes.func.isRequired,
+  listName: PropTypes.string.isRequired,
+  className: PropTypes.string,
 };
 
 export default Kanban;

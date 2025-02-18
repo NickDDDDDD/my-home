@@ -13,8 +13,11 @@ import {
 } from "react-icons/fa";
 import { FiPlus, FiTrash } from "react-icons/fi";
 import { polyfill } from "mobile-drag-drop";
+import { scrollBehaviourDragImageTranslateOverride } from "mobile-drag-drop/scroll-behaviour";
 
-polyfill();
+polyfill({
+  dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride,
+});
 
 const DEFAULT_CARDS = [
   { id: nanoid(), listName: "toBuy", content: "Buy milk" },

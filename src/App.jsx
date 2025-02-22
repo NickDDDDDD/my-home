@@ -1,9 +1,8 @@
-import Kanban from "./components/Kanban";
-
+import ShoppingList from "./components/ShoppingList";
 function App() {
   return (
     <>
-      <Kanban />
+      <ShoppingList />
     </>
   );
 }
